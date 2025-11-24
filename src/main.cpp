@@ -5,6 +5,7 @@
 #include <iomanip>
 
 // header files
+#include "../headers/backwardElimination.h"
 
 using namespace std;
 
@@ -34,7 +35,7 @@ int main() {
     if (selection == 1) {
         forwardSelection(totalFeatures);
     }
-    else if (choice == 2) {
+    else if (selection == 2) {
         backwardElimination(totalFeatures);
     }
     else {
