@@ -6,6 +6,7 @@
 
 // header files
 #include "../headers/backwardElimination.h"
+#include "../headers/forwardSelection.h"
 
 using namespace std;
 
