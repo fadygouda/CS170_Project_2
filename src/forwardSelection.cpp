@@ -1,7 +1,10 @@
 #include <iostream>
 #include <vector> 
 #include <cmath>
+#include "../headers/forwardSelection.h"
 using namespace std;
+
+
 
 extern double evaluate(const vector<int>& featureSet);
 

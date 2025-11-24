@@ -4,7 +4,6 @@
 
 using namespace std;
 
-void forwardSelection (int total, const vector<vector<double>>& x, const vector<int>& y);
-void backwardElimination (int total, const vector<vector<double>>& x, const vector<int>& y);
+void forwardSelection (int total);
 
 #endif
