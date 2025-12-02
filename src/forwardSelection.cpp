@@ -1,7 +1,12 @@
 #include <iostream>
 #include <vector> 
 #include <cmath>
+#include <algorithm>
+#include <iomanip>
+#include "../headers/forwardSelection.h"
 using namespace std;
+
+
 
 extern double evaluate(const vector<int>& featureSet);
 
@@ -10,16 +15,18 @@ double roundUp (double x) {
 }
 
 void forwardSelection (int totalFeatures) {
-    cout << "\nRunning Forward Selection...\n";
-    cout << "Using no features and \"random\" evaluation, I get an accuracy of 55.4%\n";
-    cout << "\nBeginning search.\n";
 
     vector<int> best_features;
-    double best_accuracy;
+    vector<int> emptySet;
+    double best_accuracy = evaluate(emptySet);
+
+    cout << "\nRunning Forward Selection...\n";
+    cout << "Using no features and \"random\" evaluation, I get an accuracy of " << fixed << setprecision(1) << roundUp(best_accuracy) << "%\n";
+    cout << "\nBeginning search.\n";
 
     for (int step = 0; step < totalFeatures; step++) {
         int curr_bestFeature = -1; 
-        double curr_bestAccuracy = best_accuracy;
+        double curr_bestAccuracy = -1.0;
 
         for (int feature = 1; feature <= totalFeatures; feature++) {
             if (find(best_features.begin(), best_features.end(), feature) == best_features.end()) {
@@ -37,16 +44,23 @@ void forwardSelection (int totalFeatures) {
                 }
             }
         }
-        if (curr_bestFeature != 1) {
-            best_features.push_back(curr_bestFeature);
-            best_accuracy = curr_bestAccuracy;
-            cout << "\nFeature set {";
-            for (int f : best_features) cout << f << " ";
-            cout << "} was best,  accuracy is " << roundUp(best_accuracy) << "%\n"; 
-        } else {
-            cout << "No improvement is accuracy, stopping search.\n"; 
+
+        if (curr_bestFeature == -1) {
+            cout << "(No improvement in accuracy, stopping search.)\n";
             break;
         }
+
+        if (curr_bestAccuracy < best_accuracy) {
+            cout << "(Warning, Accuracy has decreaed!)\n";
+        }
+
+        best_features.push_back(curr_bestFeature);
+        best_accuracy = curr_bestAccuracy;
+
+
+        cout << "\nFeature set {";
+        for (int f : best_features) cout << f << " ";
+        cout << "} was best,  accuracy is " << roundUp(best_accuracy) << "%\n"; 
     }
     cout << "\nFinished search! The best feature subset is { ";
     for (int f : best_features) cout << f << " ";
