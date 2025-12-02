@@ -1,8 +1,11 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
+#include <cmath>
+#include <sstream>
 
 // header files
 // #include "../headers/backwardElimination.h" for part 1
@@ -10,7 +13,7 @@
 
 // part 2 headers
 #include "../headers/NNClassifier.h"
-#include "../headers/Validator.h"
+#include "../headers/CrossValidation.h"
 
 
 using namespace std;
@@ -31,17 +34,22 @@ void loadDataset(const string& filename, vector<vector<double>>& X, vector<int>&
 
     string line;
     while (getline(file, line)) {
-        if (line.empty()) continue;
+        if(line.empty()) continue;
         stringstream ss(line);
-        int label;
-        ss >> label;
+
+        double labelDouble;
+        ss >> labelDouble;
+        int label = static_cast<int>(labelDouble);
         y.push_back(label);
 
         vector<double> row;
+        row.push_back(labelDouble);
+
         double val;
         while (ss >> val) {
             row.push_back(val);
         }
+        
         X.push_back(row);
     }
 }
@@ -54,7 +62,7 @@ void normalizeData(vector<vector<double>>& X) {
     int n = X.size();
     int d = X[0].size();
 
-    for (int j = 0; j < d; j++) {
+    for (int j = 1; j < d; j++) {
         double mean = 0.0;
         for (int i = 0; i < n; i++) {
             mean += X[i][j];
@@ -124,9 +132,9 @@ int main() {
 
     string filename;
     if(datasetChoice == 1) {
-        filename = "small-test-dataset-2-2.txt";
+        filename = "src/small-test-dataset-2-2.txt";
     } else if (datasetChoice == 2) {
-        filename = "large-test=dataset-2.txt";
+        filename = "src/large-test-dataset-2.txt";
     } else {
         cout << "Invalid choice, exiting...\n";
         return 0;
@@ -135,7 +143,7 @@ int main() {
     loadDataset(filename, X, y);
     normalizeData(X);
 
-    cout << "Dataset loaded with " << X.size() << " instances and " << X[0].size() << " features.\n";
+    cout << "Dataset loaded with " << X.size() << " instances and " << X[0].size()-1 << " features.\n";
     cout << "Enter feature indices to evaluate (1-based, end with -1): ";
 
     vector <int> featureSubset;
@@ -145,7 +153,7 @@ int main() {
     }
 
     NearestNeighborClassifier nn;
-    Validator validator(nn, X, y, featureSubset);
+    CrossValidation validator(nn, X, y, featureSubset);
 
     double acc = validator.validate();
 
