@@ -1,4 +1,4 @@
-#include "NNClassifier.h"
+#include "../headers/NNClassifier.h"
 
 #include <limits>
 #include <cmath>
