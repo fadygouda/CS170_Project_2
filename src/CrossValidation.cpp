@@ -8,45 +8,59 @@ CrossValidation::CrossValidation(NearestNeighborClassifier& classifier, const st
 
 double CrossValidation::validate() {
     int correctPredictions = 0;
-    int totalPredictions = x.size();
+    int totalPredictions = static_cast<int>(x.size());
+
+    if (totalPredictions == 0 || featureSubset.empty()) {
+        return 0.0;
+    }
+
+    std::vector<std::vector<double>> train_x;
+    std::vector<int> train_y;
+    std::vector<double> test_x;
+
+    train_x.reserve(totalPredictions - 1);
+    train_y.reserve(totalPredictions -1);
+    test_x.reserve(featureSubset.size());
 
     for (int i = 0; i < totalPredictions; ++i) {
 
-        auto start = chrono::high_resolution_clock::now();
+        // auto start = chrono::high_resolution_clock::now(); trace for part 2
 
-        std::vector<std::vector<double>> train_x = x;
-        std::vector<int> train_y = y;
-        std::vector<double> test_x;
-        
-        train_x.erase(train_x.begin() + i);
-        train_y.erase(train_y.begin() + i);
+        train_x.clear();
+        train_y.clear();
+        test_x.clear();
 
         for (int feature : featureSubset) {
             int colIndex = feature;
             test_x.push_back(x[i][colIndex]);
         }
 
-        std::vector<std::vector<double>> filtered_train_x;
-        for (const auto& row : train_x) {
+        for (int j = 0; j < totalPredictions; j++) {
+            if (j == i) continue;
+
             std::vector<double> filtered_row;
+            filtered_row.reserve(featureSubset.size());
+
             for (int feature : featureSubset) {
                 int colIndex = feature;
-                filtered_row.push_back(row[colIndex]);
+                filtered_row.push_back(x[j][colIndex]);
             }
-            filtered_train_x.push_back(filtered_row);
+
+            train_x.push_back(filtered_row);
+            train_y.push_back(y[j]);
         }
 
-        classifier.train(filtered_train_x, train_y);
-
+        classifier.train(train_x, train_y);
         int predicted = classifier.test(test_x);
+
         if (predicted == y[i]) {
-            ++correctPredictions;
+            correctPredictions++;
         }
 
-        auto end = chrono::high_resolution_clock::now();
-        double stepTime = chrono::duration<double, std::milli>(end - start).count();
-
-        cout << "Step " << i << ": true=" << y[i] << ", predicted=" << predicted <<", time=" << fixed << setprecision(3) << stepTime << " ms\n";
+        // trace for part 2 below
+        // auto end = chrono::high_resolution_clock::now();
+        // double stepTime = chrono::duration<double, std::milli>(end - start).count();
+        // cout << "Step " << i << ": true=" << y[i] << ", predicted=" << predicted <<", time=" << fixed << setprecision(3) << stepTime << " ms\n";
     }
     return static_cast<double>(correctPredictions) / totalPredictions;
 }

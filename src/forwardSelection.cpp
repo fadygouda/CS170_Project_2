@@ -24,6 +24,9 @@ void forwardSelection (int totalFeatures) {
     cout << "Using no features and \"random\" evaluation, I get an accuracy of " << fixed << setprecision(1) << roundUp(best_accuracy) << "%\n";
     cout << "\nBeginning search.\n";
 
+    double bestOverallAccuracy = best_accuracy;
+    vector<int> bestOverallSet = best_features;
+
     for (int step = 0; step < totalFeatures; step++) {
         int curr_bestFeature = -1; 
         double curr_bestAccuracy = -1.0;
@@ -61,8 +64,13 @@ void forwardSelection (int totalFeatures) {
         cout << "\nFeature set {";
         for (int f : best_features) cout << f << " ";
         cout << "} was best,  accuracy is " << roundUp(best_accuracy) << "%\n"; 
+
+        if (best_accuracy > bestOverallAccuracy) {
+            bestOverallAccuracy = best_accuracy;
+            bestOverallSet = best_features;
+        }
     }
     cout << "\nFinished search! The best feature subset is { ";
-    for (int f : best_features) cout << f << " ";
-    cout << "}, which has an accuracy of " << roundUp(best_accuracy) << "%\n";
+    for (int f : bestOverallSet) cout << f << " ";
+    cout << "}, which has an accuracy of " << roundUp(bestOverallAccuracy) << "%\n";
 }
