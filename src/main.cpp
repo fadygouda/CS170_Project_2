@@ -25,21 +25,24 @@ vector<int> globalY;
 NearestNeighborClassifier globalNN;
 
 double evaluate(const vector<int>& featureSet) {
-    if (featureSet.empty()) {
+    if (featureSet.empty()) { // when 0 features are present
         if (globalY.empty()) return 0.0;
 
-        unordered_map<int,int> freq;
+        // count occurences of each class label (1's and 2's)
+        unordered_map<int,int> classFrequency;
         for (int label : globalY) {
-            freq[label]++;
+            classFrequency[label]++;
         }
-        int maxCount = 0;
-        for (const auto& p : freq) {
-            if (p.second > maxCount) {
-                maxCount = p.second;
+
+        int maxCount = 0; // find most common class
+        for (const auto& entry : classFrequency) {
+            int count = entry.second;
+            if (count > maxCount) {
+                maxCount = count;
             }
         }
-        double defRate = maxCount / static_cast<double>(globalY.size());
-        return defRate * 100.0;
+        double defaultAccuracy = maxCount / static_cast<double>(globalY.size());
+        return defaultAccuracy * 100.0; // predicts the most common class, either 1 or 2.
     }
 
     CrossValidation cv(globalNN, globalX, globalY, featureSet);
@@ -54,20 +57,14 @@ double evaluate(const vector<int>& featureSet) {
 
 
 void loadDataset(const string& filename, vector<vector<double>>& X, vector<int>& y) {
-    ifstream file(filename, ios::binary);
+    ifstream file(filename);
     if (!file.is_open()) {
         cout << "Error: could not open " << filename << "\n";
         exit(1);
     }
-    string fileContent((istreambuf_iterator<char>(file)),istreambuf_iterator<char>());
-
-    for (char &c : fileContent) {
-        if (c == '\r') c = '\n';
-    }
-    stringstream all(fileContent);
 
     string line;
-    while (getline(all, line)) {
+    while (getline(file, line)) {
         if(line.empty()) continue;
 
         stringstream ss(line);
@@ -95,28 +92,32 @@ void loadDataset(const string& filename, vector<vector<double>>& X, vector<int>&
 void normalizeData(vector<vector<double>>& X) {
     if (X.empty()) return;
 
-    int n = X.size();
-    int d = X[0].size();
+    int numRows = X.size(); // number of data points
+    int numColumns = X[0].size(); // total number of columns in data set (label + features)
 
-    for (int j = 1; j < d; j++) {
+
+    for (int col = 1; col < numColumns; col++) { // loop through every column starting at 1 to skip the class label column
+        // compute mean
         double mean = 0.0;
-        for (int i = 0; i < n; i++) {
-            mean += X[i][j];
+        for (int row = 0; row < numRows; row++) {
+            mean += X[row][col];
         }
-        mean /=n;
+        mean /= numRows;
 
-        double var = 0.0;
-        for (int i = 0; i < n; i++) {
-            double diff = X[i][j] - mean;
-            var += diff * diff;
+        // compute the variance
+        double variance = 0.0;
+        for (int row = 0; row < numRows; row++) {
+            double diff = X[row][col] - mean;
+            variance += diff * diff;
         }
-        var /=n;
+        variance /= numRows;
 
-        double stddev = sqrt(var);
+        // compute std
+        double stddev = sqrt(variance); 
         if (stddev == 0) stddev = 1.0;
 
-        for (int i = 0; i < n; i++) {
-            X[i][j] = (X[i][j] - mean) / stddev;
+        for (int row = 0; row < numRows; row++) {
+            X[row][col] = (X[row][col] - mean) / stddev;
         }
     }
 }
@@ -142,7 +143,7 @@ int main() {
     } else if (datasetChoice == 2) {
         filename = "src/large-test-dataset-2.txt";
     } else if (datasetChoice == 3) {
-        filename = "src/titanic-clean-2.txt";
+        filename = "src/titanic_clean_generated.txt";
     } else {
         cout << "Invalid choice, exiting...\n";
         return 0;
@@ -152,7 +153,7 @@ int main() {
 
     int totalFeatures = globalX[0].size() - 1;
     cout << "\nThis dataset has " << totalFeatures << " features (not including the class attribute), with " << globalX.size() << " instances.\n";
-    normalizeData(globalX);
+    // normalizeData(globalX);
 
     cout << "\nType the number of the algorithm you would like to run.\n";
     cout << "1. Forward Selection\n";
