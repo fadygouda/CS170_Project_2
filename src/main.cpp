@@ -122,9 +122,36 @@ void normalizeData(vector<vector<double>>& X) {
     }
 }
 
+void checkNormalizationEffect(const string& filename) {
+    vector<vector<double>> Xraw;
+    vector<int>Y;
+
+    loadDataset(filename, Xraw, Y);
+
+    vector<vector<double>> Xnorm = Xraw;
+    normalizeData(Xnorm);
+
+    vector<int> allFeatures;
+    for (int col = 1; col < static_cast<int>(Xraw[0].size()); col++) {
+        allFeatures.push_back(col);
+    }
+
+    NearestNeighborClassifier nnRaw, nnNorm;
+    CrossValidation cvRaw(nnRaw, Xraw, Y, allFeatures);
+    CrossValidation cvNorm(nnNorm, Xnorm, Y, allFeatures);
+
+    double accRaw = cvRaw.validate() * 100.0;
+    double accNorm = cvNorm.validate() * 100.0;
+
+    cout <<"\n-- Normalization check --\n";
+    cout << "Dataset: " << filename << "\n";
+    cout << "Unnormalized accuracy (ALL FEATURES): " << fixed << setprecision(1) << accRaw << "%\n";
+    cout <<" Normalized accuracy (ALL FEATURES): " << fixed << setprecision(1) << accNorm << "%\n";
+}
+
 int main() {
     // part 1 code
-    // srand(time(0));
+    srand(time(0));
 
     cout << "Welcome to our Feature Selection Algorithm! \n";
     cout << "Select which dataset you would like to use:\n";
@@ -151,9 +178,11 @@ int main() {
 
     loadDataset(filename, globalX, globalY);
 
+    checkNormalizationEffect(filename);
+
     int totalFeatures = globalX[0].size() - 1;
     cout << "\nThis dataset has " << totalFeatures << " features (not including the class attribute), with " << globalX.size() << " instances.\n";
-    // normalizeData(globalX);
+    normalizeData(globalX);
 
     cout << "\nType the number of the algorithm you would like to run.\n";
     cout << "1. Forward Selection\n";
@@ -207,6 +236,4 @@ int main() {
     // cout << "\nUsing feature(s) { ";
     // for (int v: featureSubset) cout << v << " ";
     // cout <<"} accuracy = " << fixed << setprecision(4) << acc << endl;
-
-    return 0;
 }
